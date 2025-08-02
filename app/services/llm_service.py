@@ -3,26 +3,26 @@
 import os
 from openai import AzureOpenAI
 
-# Load environment variables
-API_KEY = os.getenv("AZURE_OPENAI_CHAT_API_KEY")
-ENDPOINT = os.getenv("AZURE_OPENAI_CHAT_ENDPOINT")
-DEPLOYMENT = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
-
-print(f"🔗 Azure Endpoint: {ENDPOINT}")
-print(f"🔑 API Key (last 5): {API_KEY[-5:] if API_KEY else 'MISSING'}")
-print(f"🤖 Deployment: {DEPLOYMENT}")
-
-# Azure OpenAI Client (GPT-4.1)
-client = AzureOpenAI(
-    api_key=API_KEY,
-    api_version="2024-02-15-preview",  # ✅ stable version (not 2024-12)
-    azure_endpoint=ENDPOINT
-)
-
 def query_llm(prompt, context_chunks):
     """
     Query GPT-4.1 with context chunks.
     """
+    # Load environment variables
+    API_KEY = os.getenv("AZURE_OPENAI_CHAT_API_KEY")
+    ENDPOINT = os.getenv("AZURE_OPENAI_CHAT_ENDPOINT")
+    DEPLOYMENT = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
+
+    print(f"🔗 Azure Endpoint: {ENDPOINT}")
+    print(f"🔑 API Key (last 5): {API_KEY[-5:] if API_KEY else 'MISSING'}")
+    print(f"🤖 Deployment: {DEPLOYMENT}")
+
+    # Create Azure OpenAI Client inside function to avoid module-level initialization issues
+    client = AzureOpenAI(
+        api_key=API_KEY,
+        api_version="2024-02-15-preview",
+        azure_endpoint=ENDPOINT
+    )
+
     context = "\n\n".join(context_chunks)
     final_prompt = f"{prompt}\n\nContext:\n{context}"
 
