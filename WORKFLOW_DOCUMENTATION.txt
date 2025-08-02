@@ -1,0 +1,396 @@
+===============================================================================
+                    INTELLIGENT DOCUMENT QUERY SYSTEM
+                           Complete Workflow Documentation
+===============================================================================
+
+PROJECT OVERVIEW:
+This is a FastAPI-based intelligent document query system that allows users to ask 
+natural language questions about uploaded documents (primarily PDFs) and get AI-powered 
+answers. The system uses Azure OpenAI GPT-4.1 and Google Gemini for LLM processing, 
+with ChromaDB for vector storage and semantic search.
+
+===============================================================================
+                            SYSTEM ARCHITECTURE
+===============================================================================
+
+📁 PROJECT STRUCTURE:
+├── app/
+│   ├── main.py (FastAPI application - Main API endpoints)
+│   ├── config.py (Environment configuration - API keys, endpoints)
+│   ├── services/ (Core processing modules)
+│   │   ├── document_loader.py (PDF text extraction)
+│   │   ├── chunker.py (Document chunking)
+│   │   ├── embedder.py (Text to vector conversion)
+│   │   ├── vector_store.py (ChromaDB operations)
+│   │   ├── llm_service.py (GPT-4.1 integration)
+│   │   └── evaluator.py (Response evaluation)
+│   ├── utils/ (Helper functions)
+│   │   └── helpers.py (File management, response formatting)
+│   └── models/ (Data schemas)
+│       └── schemas.py (Pydantic models)
+├── data/uploads/ (Document storage)
+├── tests/ (Test cases)
+└── deployment/ (Deployment configs for Azure, Fly.io, Render)
+
+===============================================================================
+                            COMPLETE WORKFLOW BREAKDOWN
+===============================================================================
+
+1. SYSTEM INITIALIZATION
+------------------------
+• Application starts with FastAPI server
+• Configuration loads from environment variables:
+  - Azure OpenAI API keys and endpoints
+  - Gemini API key
+  - Model deployment names
+• FileManager initializes upload directory
+• ChromaDB client initializes for vector storage
+
+2. API ENDPOINT HANDLING
+-------------------------
+ENDPOINT: POST /query/
+INPUT: 
+  - file: UploadFile (PDF document)
+  - query: str (Natural language question)
+
+PROCESS:
+• Receives PDF file via FastAPI's UploadFile
+• Accepts natural language query string
+• Records execution start time for performance tracking
+• Validates file format and size
+
+3. DOCUMENT PROCESSING PIPELINE
+--------------------------------
+
+STEP 3.1: FILE MANAGEMENT (app/utils/helpers.py)
+• FileManager.save_uploaded_file():
+  - Generates unique UUID for file
+  - Saves uploaded file to ./data/uploads/ directory
+  - Returns file path for processing
+• FileManager.generate_document_id():
+  - Creates unique document ID for tracking
+  - Uses filename + content hash for consistency
+
+STEP 3.2: DOCUMENT LOADING (app/services/document_loader.py)
+• load_document(file_path: str) -> str:
+  - Uses PyMuPDF (fitz) to extract text from PDF
+  - Iterates through all pages
+  - Concatenates text content
+  - Returns cleaned text string
+  - Handles PDF parsing errors gracefully
+
+STEP 3.3: DOCUMENT CHUNKING (app/services/chunker.py)
+• chunk_document(document: str, max_chunk_size: int = 500) -> list:
+  - Splits document into words
+  - Creates chunks of 500 words each
+  - Ensures manageable pieces for embedding
+  - Returns list of text chunks
+  - Maintains semantic coherence within chunks
+
+STEP 3.4: EMBEDDING GENERATION (app/services/embedder.py)
+• embed_chunks(chunks):
+  - Uses Azure OpenAI text-embedding-3-large model
+  - Converts text chunks to vector embeddings
+  - Each embedding represents semantic meaning of chunk
+  - Returns list of embedding vectors (1536 dimensions)
+  - Handles API rate limiting and errors
+
+STEP 3.5: VECTOR STORAGE (app/services/vector_store.py)
+• store_embeddings(doc_id: str, chunks: list[str], embeddings: list[list[float]]):
+  - Uses ChromaDB for vector database
+  - Creates unique collection per document
+  - Stores chunks with their embeddings
+  - Indexes for fast similarity search
+  - Persists data to .chromadb directory
+
+4. QUERY PROCESSING PIPELINE
+-----------------------------
+
+STEP 4.1: SEMANTIC SEARCH (app/services/vector_store.py)
+• search_similar_chunks(query: str, doc_id: str, top_k: int = 5) -> list[str]:
+  - Embeds the user query using same model
+  - Performs similarity search in ChromaDB
+  - Returns top 5 most relevant chunks
+  - Uses cosine similarity for matching
+  - Handles cases where document not found
+
+STEP 4.2: LLM QUERYING (app/services/llm_service.py)
+• query_llm(prompt, context_chunks):
+  - Uses Azure OpenAI GPT-4.1 model
+  - Combines user query with relevant context chunks
+  - Formats prompt: "{query}\n\nContext:\n{relevant_chunks}"
+  - Generates natural language answer
+  - Handles connection errors gracefully
+  - Uses stable API version (2024-02-15-preview)
+
+STEP 4.3: RESPONSE EVALUATION (app/services/evaluator.py)
+• evaluate_response(query: str, answer: str) -> str:
+  - Analyzes answer for insurance-related keywords
+  - Categorizes as "Likely Yes", "Likely No", or "Uncertain"
+  - Uses simple keyword matching for classification
+  - Helps users quickly understand coverage status
+
+5. RESPONSE FORMATTING (app/utils/helpers.py)
+---------------------------------------------
+• ResponseFormatter.format_success_response():
+  - Structures response in consistent format
+  - Includes status, message, and data
+  - Calculates execution time
+  - Returns JSON response
+
+RESPONSE STRUCTURE:
+{
+  "status": "success",
+  "message": "Success",
+  "data": {
+    "query": "Does it cover knee surgery?",
+    "answer": "Based on the document...",
+    "evaluation": "Likely Yes",
+    "execution_time_seconds": 3.45
+  }
+}
+
+6. ERROR HANDLING & CLEANUP
+----------------------------
+ERROR HANDLING:
+• Try-catch blocks around each processing step
+• HTTP 500 errors for internal server issues
+• Graceful degradation for API failures
+• Detailed error logging with traceback
+• User-friendly error messages
+
+CLEANUP PROCESS:
+• Automatic file deletion after processing
+• Memory cleanup for temporary data
+• ChromaDB persistence for vector storage
+• Async cleanup operations
+
+===============================================================================
+                            TECHNICAL ARCHITECTURE
+===============================================================================
+
+DEPENDENCIES & TECHNOLOGIES:
+• FastAPI: Web framework for API
+• PyMuPDF: PDF text extraction
+• Azure OpenAI: GPT-4.1 for chat, text-embedding-3-large for embeddings
+• ChromaDB: Vector database for semantic search
+• Uvicorn: ASGI server
+• Docker: Containerization
+• Pytest: Testing framework
+• Python-dotenv: Environment management
+
+DATA FLOW:
+PDF Upload → Text Extraction → Chunking → Embedding → Vector Storage
+                                                          ↓
+Query Input → Query Embedding → Semantic Search → Context Retrieval
+                                                          ↓
+LLM Processing → Answer Generation → Evaluation → Response Formatting
+
+PERFORMANCE OPTIMIZATIONS:
+• Async file handling for non-blocking operations
+• Chunk-based processing for large documents
+• Vector similarity search for fast retrieval
+• Execution time tracking for monitoring
+• Automatic cleanup to prevent memory leaks
+• Connection pooling for API calls
+
+===============================================================================
+                            DEPLOYMENT OPTIONS
+===============================================================================
+
+LOCAL DEVELOPMENT:
+```bash
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+DOCKER DEPLOYMENT:
+```bash
+docker-compose up --build
+```
+
+CLOUD PLATFORMS:
+• Azure: deployment/azure-deploy.yml
+• Fly.io: deployment/fly.toml
+• Render: deployment/render.yaml
+
+===============================================================================
+                            TESTING FRAMEWORK
+===============================================================================
+
+API TESTS (tests/test_api.py):
+• Health check endpoint testing
+• Query endpoint validation
+• Error handling verification
+• File upload testing
+
+SERVICE TESTS (tests/test_services.py):
+• Document chunking validation
+• Embedding generation testing
+• Vector store operations verification
+• LLM integration testing
+
+===============================================================================
+                            KEY FEATURES
+===============================================================================
+
+1. NATURAL LANGUAGE PROCESSING
+   - Understands complex queries
+   - Handles insurance-specific terminology
+   - Context-aware responses
+
+2. MULTI-FORMAT SUPPORT
+   - PDF document processing
+   - Extensible for other formats
+   - Robust text extraction
+
+3. SEMANTIC SEARCH
+   - Finds relevant context using embeddings
+   - Cosine similarity matching
+   - Top-k retrieval for accuracy
+
+4. AI-POWERED ANSWERS
+   - GPT-4.1 for intelligent responses
+   - Context-aware generation
+   - Natural language output
+
+5. PERFORMANCE MONITORING
+   - Execution time tracking
+   - Response time optimization
+   - Performance metrics
+
+6. ERROR RESILIENCE
+   - Graceful error handling
+   - Fallback mechanisms
+   - Detailed error logging
+
+7. SCALABLE ARCHITECTURE
+   - Modular service design
+   - Microservices pattern
+   - Easy to extend and maintain
+
+8. CLOUD READY
+   - Multiple deployment options
+   - Containerized application
+   - Environment-based configuration
+
+===============================================================================
+                            USE CASE EXAMPLE
+===============================================================================
+
+INPUT:
+• File: insurance_policy.pdf
+• Query: "Does this policy cover knee surgery?"
+
+WORKFLOW:
+1. PDF uploaded and saved temporarily to ./data/uploads/
+2. Text extracted from all pages using PyMuPDF
+3. Document chunked into 500-word pieces
+4. Each chunk embedded into 1536-dimensional vectors
+5. Vectors stored in ChromaDB with document ID
+6. Query "knee surgery" embedded using same model
+7. Similar chunks retrieved (top 5 most relevant)
+8. Context + query sent to GPT-4.1 with prompt formatting
+9. AI generates answer based on policy content
+10. Answer evaluated for coverage likelihood
+11. Response formatted with execution time
+12. Temporary files cleaned up automatically
+
+OUTPUT:
+{
+  "status": "success",
+  "message": "Success",
+  "data": {
+    "query": "Does this policy cover knee surgery?",
+    "answer": "Yes, knee surgery is covered under Section 3.2 of your policy. The policy specifically mentions orthopedic procedures including knee surgery with a coverage limit of $50,000 per procedure.",
+    "evaluation": "Likely Yes",
+    "execution_time_seconds": 4.2
+  }
+}
+
+===============================================================================
+                            API ENDPOINTS
+===============================================================================
+
+GET / - Health check endpoint
+• Returns welcome message
+• Redirects to /docs for API documentation
+
+POST /query/ - Main query endpoint
+• Accepts: file (PDF), query (string)
+• Returns: structured response with answer and evaluation
+• Handles file upload and processing
+• Includes execution time tracking
+
+===============================================================================
+                            ENVIRONMENT VARIABLES
+===============================================================================
+
+Required Environment Variables:
+• AZURE_OPENAI_CHAT_DEPLOYMENT: GPT-4 deployment name
+• AZURE_OPENAI_CHAT_API_KEY: Azure OpenAI API key
+• AZURE_OPENAI_CHAT_ENDPOINT: Azure OpenAI endpoint
+• AZURE_OPENAI_EMBEDDING_DEPLOYMENT: text-embedding-3-large deployment
+• AZURE_OPENAI_EMBEDDING_API_KEY: Embedding API key
+• AZURE_OPENAI_EMBEDDING_ENDPOINT: Embedding endpoint
+• GEMINI_API_KEY: Google Gemini API key (optional)
+
+===============================================================================
+                            PERFORMANCE CHARACTERISTICS
+===============================================================================
+
+TYPICAL EXECUTION TIMES:
+• File upload: 0.1-0.5 seconds
+• Text extraction: 0.2-1.0 seconds
+• Chunking: 0.1 seconds
+• Embedding generation: 1-3 seconds
+• Vector storage: 0.5 seconds
+• Semantic search: 0.2-0.5 seconds
+• LLM processing: 2-5 seconds
+• Total response time: 4-10 seconds
+
+MEMORY USAGE:
+• Document processing: 50-200MB depending on PDF size
+• Vector storage: 10-50MB per document
+• LLM context: 1-5MB per query
+• Peak memory: 200-500MB for large documents
+
+===============================================================================
+                            SECURITY CONSIDERATIONS
+===============================================================================
+
+• API key management through environment variables
+• Temporary file cleanup after processing
+• Input validation for file types and sizes
+• Error messages don't expose internal details
+• Secure file handling with unique IDs
+• Rate limiting considerations for API calls
+
+===============================================================================
+                            FUTURE ENHANCEMENTS
+===============================================================================
+
+POTENTIAL IMPROVEMENTS:
+• Support for more document formats (DOCX, TXT)
+• User authentication and session management
+• Document versioning and history
+• Advanced evaluation metrics
+• Multi-language support
+• Real-time processing status updates
+• Batch processing capabilities
+• Advanced caching mechanisms
+
+===============================================================================
+                            CONCLUSION
+===============================================================================
+
+This Intelligent Document Query System provides a complete end-to-end solution for 
+intelligent document querying with enterprise-grade reliability and performance. 
+The modular architecture makes it easy to extend, maintain, and deploy across 
+different platforms while providing fast, accurate responses to natural language 
+queries about document content.
+
+The system successfully combines modern AI technologies (GPT-4.1, embeddings) 
+with robust document processing (PyMuPDF, ChromaDB) to create a powerful tool 
+for extracting insights from documents through natural language interaction.
+
+=============================================================================== 

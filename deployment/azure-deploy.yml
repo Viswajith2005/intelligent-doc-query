@@ -1,0 +1,12 @@
+# deployment/azure-deploy.yml
+
+services:
+  web:
+    image: doc-query:latest
+    ports:
+      - 8000:8000
+    environment:
+      - AZURE_OPENAI_CHAT_API_KEY=${AZURE_OPENAI_CHAT_API_KEY}
+      - AZURE_OPENAI_EMBEDDING_API_KEY=${AZURE_OPENAI_EMBEDDING_API_KEY}
+      - AZURE_OPENAI_CHAT_ENDPOINT=${AZURE_OPENAI_CHAT_ENDPOINT}
+      - AZURE_OPENAI_EMBEDDING_ENDPOINT=${AZURE_OPENAI_EMBEDDING_ENDPOINT}

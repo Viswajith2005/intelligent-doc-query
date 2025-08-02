@@ -1,0 +1,39 @@
+# Core FastAPI dependencies
+fastapi==0.110.1
+uvicorn[standard]==0.29.0
+
+# Environment management
+python-dotenv==1.0.1
+
+# Azure OpenAI SDK
+openai==1.30.1
+
+# Google Gemini SDK (optional - not currently used)
+# google-generativeai==0.5.2
+
+# PDF & DOCX file handling
+PyMuPDF==1.24.1
+python-docx==1.1.0
+
+# Embedding and Vector DB
+chromadb==0.4.24
+langchain==0.2.1
+sentence-transformers==2.7.0
+numpy==1.26.4
+
+# HTTP requests for document downloading
+requests==2.31.0
+
+# File handling and logging
+aiofiles==24.1.0
+loguru==0.7.3
+
+# Data processing
+pandas==2.2.2
+
+# Testing (optional for production)
+pytest==8.2.1
+
+# Additional dependencies for deployment
+pydantic==2.8.2
+typing-extensions==4.12.2

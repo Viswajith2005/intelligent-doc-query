@@ -1,0 +1,17 @@
+# deployment/fly.toml
+
+app = "intelligent-doc-query"
+
+[build]
+image = "doc-query:latest"
+
+[env]
+PORT = "8000"
+
+[[services]]
+internal_port = 8000
+protocol = "tcp"
+
+[[services.ports]]
+port = 80
+handlers = ["http"]
