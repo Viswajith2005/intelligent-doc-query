@@ -1,9 +1,10 @@
+# NUCLEAR FIX - Completely new file to force Render deployment
+# This file replaces the old embedder.py completely
+# Deployment ID: NUCLEAR-FORCE-REFRESH-2024
+
 import os
 import requests
 import json
-
-# BULLETPROOF FIX - Direct HTTP requests to eliminate all openai library issues
-# Deployment ID: cc8bc25-bulletproof-http-only
 
 def embed_chunks(chunks):
     """
