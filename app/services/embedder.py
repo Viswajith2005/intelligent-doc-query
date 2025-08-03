@@ -2,6 +2,9 @@ import os
 import requests
 import json
 
+# BULLETPROOF FIX - Direct HTTP requests to eliminate all openai library issues
+# Deployment ID: cc8bc25-bulletproof-http-only
+
 def embed_chunks(chunks):
     """
     Generate embeddings for document chunks using direct HTTP requests.

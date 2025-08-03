@@ -1,3 +1,6 @@
+# BULLETPROOF FIX - Direct HTTP requests to eliminate all openai library issues
+# Deployment ID: cc8bc25-bulletproof-http-only
+
 import time
 import threading
 import webbrowser

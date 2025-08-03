@@ -4,6 +4,9 @@ import os
 import requests
 import json
 
+# BULLETPROOF FIX - Direct HTTP requests to eliminate all openai library issues
+# Deployment ID: cc8bc25-bulletproof-http-only
+
 def query_llm(prompt, context_chunks):
     """
     Query GPT-4.1 with context chunks using direct HTTP requests.
