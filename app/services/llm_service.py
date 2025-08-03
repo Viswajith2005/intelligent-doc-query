@@ -1,11 +1,13 @@
 # app/services/llm_service.py
 
 import os
-from openai import AzureOpenAI
+import requests
+import json
 
 def query_llm(prompt, context_chunks):
     """
-    Query GPT-4.1 with context chunks.
+    Query GPT-4.1 with context chunks using direct HTTP requests.
+    This bypasses the openai library issues completely.
     """
     # Load environment variables
     API_KEY = os.getenv("AZURE_OPENAI_CHAT_API_KEY")
@@ -16,37 +18,48 @@ def query_llm(prompt, context_chunks):
     print(f"🔑 API Key (last 5): {API_KEY[-5:] if API_KEY else 'MISSING'}")
     print(f"🤖 Deployment: {DEPLOYMENT}")
 
-    # Create Azure OpenAI Client with compatible configuration
-    try:
-        client = AzureOpenAI(
-            api_key=API_KEY,
-            api_version="2024-12-01-preview",
-            azure_endpoint=ENDPOINT
-        )
-        print("✅ LLM client initialized successfully")
-    except Exception as e:
-        print(f"❌ LLM client initialization failed: {e}")
-        # Try alternative approach
-        try:
-            client = AzureOpenAI(
-                api_key=API_KEY,
-                azure_endpoint=ENDPOINT
-            )
-            print("✅ LLM client initialized with minimal config")
-        except Exception as e2:
-            print(f"❌ Alternative initialization failed: {e2}")
-            raise RuntimeError(f"Failed to initialize Azure OpenAI client: {e}")
-
+    # Construct the API URL
+    api_url = f"{ENDPOINT}/openai/deployments/{DEPLOYMENT}/chat/completions?api-version=2024-12-01-preview"
+    
+    # Prepare headers
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": API_KEY
+    }
+    
+    # Prepare context and prompt
     context = "\n\n".join(context_chunks)
     final_prompt = f"{prompt}\n\nContext:\n{context}"
-
+    
+    # Prepare request body
+    data = {
+        "messages": [
+            {
+                "role": "user",
+                "content": final_prompt
+            }
+        ],
+        "max_tokens": 1000,
+        "temperature": 0.7
+    }
+    
     try:
-        response = client.chat.completions.create(
-            model=DEPLOYMENT,
-            messages=[{"role": "user", "content": final_prompt}]
-        )
-        return response.choices[0].message.content
-
+        print("🚀 Making direct HTTP request to Azure OpenAI...")
+        response = requests.post(api_url, headers=headers, json=data, timeout=60)
+        response.raise_for_status()
+        
+        result = response.json()
+        answer = result["choices"][0]["message"]["content"]
+        
+        print("✅ Successfully generated LLM response")
+        return answer
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ HTTP request failed: {e}")
+        raise RuntimeError(f"Failed to query LLM via HTTP: {e}")
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON parsing failed: {e}")
+        raise RuntimeError(f"Failed to parse LLM response: {e}")
     except Exception as e:
-        print(f"❌ LLM error: {e}")
-        raise RuntimeError(f"Connection error to Azure OpenAI: {e}")
+        print(f"❌ Unexpected error: {e}")
+        raise RuntimeError(f"Failed to query LLM: {e}")

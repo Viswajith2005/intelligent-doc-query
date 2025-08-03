@@ -6,11 +6,8 @@ python-multipart==0.0.9
 # Environment management
 python-dotenv==1.0.1
 
-# Azure OpenAI SDK - Using stable version without proxies issue
-openai==1.12.0
-
-# Google Gemini SDK (optional - not currently used)
-# google-generativeai==0.5.2
+# HTTP requests for API calls and document downloading
+requests==2.31.0
 
 # PDF & DOCX file handling
 PyMuPDF==1.24.1
@@ -21,9 +18,6 @@ chromadb==0.4.24
 langchain==0.2.1
 sentence-transformers==2.7.0
 numpy==1.26.4
-
-# HTTP requests for document downloading
-requests==2.31.0
 
 # File handling and logging
 aiofiles==24.1.0
