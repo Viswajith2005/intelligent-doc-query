@@ -14,11 +14,13 @@ def embed_chunks(chunks):
     print(f"🔑 Embedding API Key (last 5): {api_key[-5:] if api_key else 'MISSING'}")
     print(f"🤖 Embedding Deployment: {deployment}")
     
-    # Create embedding client with user's exact configuration
+    # Set API version as environment variable to avoid proxies issue
+    os.environ["OPENAI_API_VERSION"] = "2024-02-01"
+    
+    # Create embedding client with minimal configuration
     try:
         embedding_client = AzureOpenAI(
             api_key=api_key,
-            api_version="2024-02-01",
             azure_endpoint=endpoint
         )
         print("✅ Embedding client initialized successfully")

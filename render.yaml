@@ -20,4 +20,6 @@ services:
       - key: AZURE_OPENAI_EMBEDDING_ENDPOINT
         sync: false
       - key: TEAM_TOKEN
-        value: acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a 
+        value: acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a
+      - key: OPENAI_API_VERSION
+        value: 2024-12-01-preview 

@@ -16,11 +16,13 @@ def query_llm(prompt, context_chunks):
     print(f"🔑 API Key (last 5): {API_KEY[-5:] if API_KEY else 'MISSING'}")
     print(f"🤖 Deployment: {DEPLOYMENT}")
 
-    # Create Azure OpenAI Client with user's exact configuration
+    # Set API version as environment variable to avoid proxies issue
+    os.environ["OPENAI_API_VERSION"] = "2024-12-01-preview"
+
+    # Create Azure OpenAI Client with minimal configuration
     try:
         client = AzureOpenAI(
             api_key=API_KEY,
-            api_version="2024-12-01-preview",
             azure_endpoint=ENDPOINT
         )
         print("✅ LLM client initialized successfully")
