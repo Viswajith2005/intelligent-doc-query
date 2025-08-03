@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: intelligent-doc-query
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: AZURE_OPENAI_CHAT_DEPLOYMENT
+        value: gpt-4
+      - key: AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+        value: text-embedding-3-large
+      - key: AZURE_OPENAI_CHAT_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_CHAT_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_EMBEDDING_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_EMBEDDING_ENDPOINT
+        sync: false
+      - key: TEAM_TOKEN
+        value: acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a 

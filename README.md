@@ -1,109 +1,157 @@
-# Intelligent Document Query System
+# Intelligent Document Query API
 
-A FastAPI-based intelligent query system for answering natural language questions from documents (PDFs, emails, etc.) using Azure OpenAI and Gemini APIs.
+A FastAPI-based intelligent document query system powered by Azure OpenAI services. This application processes documents and answers questions using advanced LLM capabilities.
 
 ## 🚀 Features
 
-- **Natural Language Processing**: Understands complex queries about insurance, legal, HR, and compliance documents
-- **Multi-format Support**: PDF document processing with robust text extraction
-- **Semantic Search**: Finds relevant context using embeddings and ChromaDB
-- **AI-Powered Answers**: GPT-4.1 for intelligent, context-aware responses
-- **Performance Monitoring**: Execution time tracking and accuracy evaluation
-- **Error Resilience**: Graceful error handling and fallback mechanisms
-- **Scalable Architecture**: Modular service design for easy extension
-- **Cloud Ready**: Multiple deployment options (Azure, Fly.io, Render)
+- **Document Processing**: Supports PDF document upload and processing
+- **Intelligent Querying**: Uses Azure OpenAI GPT-4 for intelligent question answering
+- **Vector Search**: Implements semantic search using embeddings
+- **RESTful API**: Clean FastAPI endpoints with automatic documentation
+- **Authentication**: Bearer token-based API security
+- **Health Monitoring**: Built-in health check endpoints
 
-## 🏗️ System Architecture
-
-```
-PDF Upload → Text Extraction → Chunking → Embedding → Vector Storage
-                                                          ↓
-Query Input → Query Embedding → Semantic Search → Context Retrieval
-                                                          ↓
-LLM Processing → Answer Generation → Evaluation → Response Formatting
-```
-
-## 📋 Requirements
+## 📋 Prerequisites
 
 - Python 3.11+
-- Azure OpenAI API access
-- Internet connection for document downloads
+- Azure OpenAI API credentials
+- Docker (for containerized deployment)
 
-## 🛠️ Installation
+## 🔧 Environment Variables
 
-### 1. Clone the repository
-```bash
-git clone <your-repo-url>
-cd intelligent-doc-query
-```
-
-### 2. Create virtual environment
-```bash
-python -m venv venv
-venv\Scripts\activate  # Windows
-# or
-source venv/bin/activate  # Linux/Mac
-```
-
-### 3. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Set up environment variables
 Create a `.env` file in the project root:
-```
+
+```env
+# Azure OpenAI Configuration
 AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4
-AZURE_OPENAI_CHAT_API_KEY=your_azure_openai_chat_api_key
-AZURE_OPENAI_CHAT_ENDPOINT=your_azure_openai_chat_endpoint
+AZURE_OPENAI_CHAT_API_KEY=your_chat_api_key_here
+AZURE_OPENAI_CHAT_ENDPOINT=https://your-resource.openai.azure.com/
+
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large
-AZURE_OPENAI_EMBEDDING_API_KEY=your_azure_openai_embedding_api_key
-AZURE_OPENAI_EMBEDDING_ENDPOINT=your_azure_openai_embedding_endpoint
-GEMINI_API_KEY=your_gemini_api_key
+AZURE_OPENAI_EMBEDDING_API_KEY=your_embedding_api_key_here
+AZURE_OPENAI_EMBEDDING_ENDPOINT=https://your-resource.openai.azure.com/
+
+# Optional: Team Token for API Authentication
+TEAM_TOKEN=acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a
 ```
 
-### 5. Run the application
-```bash
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
+## 🚀 Quick Start
 
-## 🌐 API Endpoints
+### Local Development
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd intelligent-doc-query
+   ```
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # or
+   venv\Scripts\activate     # Windows
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   ```bash
+   # Copy the .env template and fill in your Azure OpenAI credentials
+   cp .env.example .env
+   # Edit .env with your actual credentials
+   ```
+
+5. **Run the application**
+   ```bash
+   python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+6. **Access the API**
+   - API: http://localhost:8000
+   - Documentation: http://localhost:8000/docs
+   - Health Check: http://localhost:8000/api/v1/health
+
+### Docker Deployment
+
+1. **Build and run with Docker**
+   ```bash
+   docker build -t intelligent-doc-query .
+   docker run -d --name doc-query-app -p 8000:8000 --env-file .env intelligent-doc-query
+   ```
+
+2. **Or use Docker Compose**
+   ```bash
+   docker-compose up --build -d
+   ```
+
+## 📚 API Endpoints
 
 ### Health Check
-- **GET** `/api/v1/health`
-- Returns API status
+- **GET** `/api/v1/health` - Health check endpoint
 
-### Main Hackathon Endpoint
-- **POST** `/api/v1/hackrx/run`
-- **Headers**: 
-  - `Content-Type: application/json`
-  - `Authorization: Bearer acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a`
-- **Body**: JSON with `documents` URL and `questions` array
-- **Response**: JSON with `answers` array
+### Main Query Endpoint
+- **POST** `/api/v1/hackrx/run` - Process document queries
+  - Requires Bearer token authentication
+  - Request body: `{"documents": "url", "questions": ["question1", "question2"]}`
 
-### Legacy File Upload
-- **POST** `/query/`
-- **Body**: Multipart form with PDF file and query string
-
-## 🐳 Docker Deployment
-
-```bash
-docker-compose up --build
-```
-
-## 📊 Performance Metrics
-
-- **Response Time**: 20-35 seconds for 10 questions
-- **Accuracy**: 95-98% for insurance-related queries
-- **Memory Usage**: 200-500MB peak
-- **Token Efficiency**: Optimized LLM usage
+### Legacy Endpoint
+- **POST** `/query/` - Legacy document query endpoint (for testing)
 
 ## 🧪 Testing
 
-Run tests with:
+### Health Check
 ```bash
-pytest tests/
+curl http://localhost:8000/api/v1/health
 ```
+
+### Test Query
+```bash
+curl -X POST "http://localhost:8000/api/v1/hackrx/run" \
+  -H "Authorization: Bearer acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "documents": "https://example.com/sample-document.pdf",
+    "questions": ["What is the main topic of this document?"]
+  }'
+```
+
+## 🚀 Deployment
+
+### Render Deployment
+
+1. **Fork/Clone this repository to your GitHub account**
+
+2. **Connect to Render**
+   - Go to [render.com](https://render.com)
+   - Sign up/Login
+   - Click "New +" → "Web Service"
+
+3. **Configure the service**
+   - **Name**: `intelligent-doc-query`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+4. **Set Environment Variables**
+   - `AZURE_OPENAI_CHAT_API_KEY`: Your Azure OpenAI chat API key
+   - `AZURE_OPENAI_CHAT_ENDPOINT`: Your Azure OpenAI chat endpoint
+   - `AZURE_OPENAI_EMBEDDING_API_KEY`: Your Azure OpenAI embedding API key
+   - `AZURE_OPENAI_EMBEDDING_ENDPOINT`: Your Azure OpenAI embedding endpoint
+   - `AZURE_OPENAI_CHAT_DEPLOYMENT`: `gpt-4`
+   - `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`: `text-embedding-3-large`
+   - `TEAM_TOKEN`: `acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a`
+
+5. **Deploy**
+   - Click "Create Web Service"
+   - Wait for deployment to complete
+
+### GitHub Actions (Optional)
+
+The repository includes GitHub Actions for automated testing and deployment.
 
 ## 📁 Project Structure
 
@@ -111,37 +159,64 @@ pytest tests/
 intelligent-doc-query/
 ├── app/
 │   ├── main.py              # FastAPI application
-│   ├── config.py            # Environment configuration
-│   ├── services/            # Core processing modules
-│   ├── utils/               # Helper functions
-│   └── models/              # Data schemas
-├── data/uploads/            # Document storage
-├── tests/                   # Test cases
+│   ├── config.py            # Configuration settings
+│   ├── models/              # Pydantic models
+│   ├── services/            # Business logic
+│   └── utils/               # Utility functions
+├── data/
+│   └── uploads/             # Uploaded files
+├── tests/                   # Test files
 ├── deployment/              # Deployment configs
-├── requirements.txt         # Dependencies
-├── Dockerfile              # Container configuration
-└── docker-compose.yml      # Docker setup
+├── Dockerfile              # Docker configuration
+├── docker-compose.yml      # Docker Compose
+├── requirements.txt        # Python dependencies
+└── render.yaml            # Render configuration
 ```
 
 ## 🔧 Configuration
 
-The system uses environment variables for configuration. See `.env` file for required variables.
+### Environment Variables
 
-## 🚀 Deployment
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `AZURE_OPENAI_CHAT_API_KEY` | Azure OpenAI Chat API Key | Yes |
+| `AZURE_OPENAI_CHAT_ENDPOINT` | Azure OpenAI Chat Endpoint | Yes |
+| `AZURE_OPENAI_EMBEDDING_API_KEY` | Azure OpenAI Embedding API Key | Yes |
+| `AZURE_OPENAI_EMBEDDING_ENDPOINT` | Azure OpenAI Embedding Endpoint | Yes |
+| `AZURE_OPENAI_CHAT_DEPLOYMENT` | Chat model deployment name | No (default: gpt-4) |
+| `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | Embedding model deployment name | No (default: text-embedding-3-large) |
+| `TEAM_TOKEN` | API authentication token | No (default: provided) |
 
-### Local Development
+## 🛠️ Development
+
+### Running Tests
 ```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+pytest tests/
 ```
 
-### Cloud Platforms
-- **Azure**: Use `deployment/azure-deploy.yml`
-- **Fly.io**: Use `deployment/fly.toml`
-- **Render**: Use `deployment/render.yaml`
+### Code Formatting
+```bash
+black app/
+isort app/
+```
 
-## 📝 License
+### Type Checking
+```bash
+mypy app/
+```
 
-This project is developed for the Bajaj Hackathon.
+## 📊 Monitoring
+
+- **Health Check**: Monitor `/api/v1/health` endpoint
+- **Logs**: Check application logs for errors
+- **Performance**: Monitor response times and memory usage
+
+## 🔒 Security
+
+- API uses Bearer token authentication
+- Environment variables for sensitive data
+- Input validation with Pydantic models
+- Error handling without exposing sensitive information
 
 ## 🤝 Contributing
 
@@ -151,6 +226,18 @@ This project is developed for the Bajaj Hackathon.
 4. Add tests
 5. Submit a pull request
 
-## 📞 Support
+## 📄 License
 
-For issues and questions, please contact the development team.
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For issues and questions:
+1. Check the documentation at `/docs` endpoint
+2. Review the health check endpoint
+3. Check application logs
+4. Create an issue in the repository
+
+---
+
+**Note**: Make sure to configure your Azure OpenAI credentials before deploying or running the application.

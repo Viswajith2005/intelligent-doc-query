@@ -1,0 +1,177 @@
+{
+	"info": {
+		"_postman_id": "intelligent-doc-query-api",
+		"name": "Intelligent Document Query API",
+		"description": "API collection for testing the Intelligent Document Query system",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Home Page",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Document Query - Main Endpoint",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{team_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"documents\": \"https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf\",\n  \"questions\": [\n    \"What is this document about?\",\n    \"What are the main topics covered?\",\n    \"Is this a technical document?\"\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/hackrx/run",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"hackrx",
+						"run"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Legacy File Upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						},
+						{
+							"key": "query",
+							"value": "What is this document about?",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/query/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"query",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Test with Insurance Document",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{team_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"documents\": \"https://www.irs.gov/pub/irs-pdf/fw4.pdf\",\n  \"questions\": [\n    \"What is the purpose of this form?\",\n    \"What information is required to be filled out?\",\n    \"What are the tax implications?\"\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/hackrx/run",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"hackrx",
+						"run"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://your-app-name.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "team_token",
+			"value": "acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a",
+			"type": "string"
+		}
+	]
+} 

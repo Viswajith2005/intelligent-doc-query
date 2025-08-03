@@ -30,7 +30,7 @@ file_manager = FileManager()
 
 # Authentication
 security = HTTPBearer()
-TEAM_TOKEN = "acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a"
+TEAM_TOKEN = os.getenv("TEAM_TOKEN", "acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a")
 
 # Pydantic models for request/response
 class DocumentQueryRequest(BaseModel):
@@ -58,6 +58,23 @@ def health_check():
     """
     Health check endpoint for the API.
     """
+    # Check if required environment variables are set
+    required_vars = [
+        "AZURE_OPENAI_CHAT_API_KEY",
+        "AZURE_OPENAI_CHAT_ENDPOINT",
+        "AZURE_OPENAI_EMBEDDING_API_KEY",
+        "AZURE_OPENAI_EMBEDDING_ENDPOINT"
+    ]
+    
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        return {
+            "status": "unhealthy",
+            "message": f"Missing environment variables: {', '.join(missing_vars)}",
+            "error": "Configuration incomplete"
+        }
+    
     return {"status": "healthy", "message": "API is running successfully"}
 
 @app.post("/api/v1/hackrx/run", response_model=DocumentQueryResponse)
@@ -80,7 +97,7 @@ async def run_document_queries(
         # Download document from URL
         download_start = time.time()
         print(f"📥 Downloading document from: {request.documents}")
-        response = requests.get(request.documents)
+        response = requests.get(request.documents, timeout=30)
         response.raise_for_status()
         download_time = round(time.time() - download_start, 2)
         performance_metrics["download_time"] = download_time
@@ -209,13 +226,12 @@ async def query_document(file: UploadFile = File(...), query: str = ""):
     finally:
         await file_manager.cleanup_file(saved_path)
 
-# --------- Auto open Swagger UI (http://127.0.0.1:8000/docs) ----------
-def open_browser():
-    webbrowser.open_new("http://127.0.0.1:8000/docs")
-
+# Only auto-open browser in development
 if __name__ == "__main__":
-    # Open browser after 1.5 sec delay
-    threading.Timer(1.5, open_browser).start()
+    # Check if running in development mode
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        # Open browser after 1.5 sec delay
+        threading.Timer(1.5, lambda: webbrowser.open_new("http://127.0.0.1:8000/docs")).start()
 
     import uvicorn
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
