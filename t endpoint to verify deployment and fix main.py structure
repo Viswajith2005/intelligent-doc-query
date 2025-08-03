@@ -1,0 +1,5 @@
+[33ma587bfa[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix Azure OpenAI proxies issue - use environment variables for API version
+[33ma59dc40[m Updated Azure OpenAI configuration to match user's exact settings - GPT-4.1 and text-embedding-3-large
+[33m7d345bd[m Comprehensive fix for Azure OpenAI client initialization - multiple fallback attempts and better error handling
+[33mc3d51b0[m Fix Azure OpenAI client proxies error - update client initialization
+[33m1ee41e5[m Fix Azure OpenAI client initialization error - add better error handling

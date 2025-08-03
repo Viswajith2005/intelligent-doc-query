@@ -3,6 +3,7 @@ import threading
 import webbrowser
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import HTMLResponse
 from app.utils.helpers import FileManager, ResponseFormatter
 from app.services.document_loader import load_document
 from app.services.chunker import chunk_document
@@ -20,19 +21,21 @@ from pydantic import BaseModel
 # Add project root to PYTHONPATH
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Initialize FastAPI app
 app = FastAPI(
     title="Intelligent Document Query API",
-    version="1.0.0",
-    description="LLM-Powered Intelligent Query–Retrieval System for insurance, legal, HR, and compliance domains"
+    description="AI-powered document querying system using Azure OpenAI",
+    version="1.0.0"
 )
 
+# Initialize security and file manager
+security = HTTPBearer()
 file_manager = FileManager()
 
-# Authentication
-security = HTTPBearer()
+# Get team token from environment variable
 TEAM_TOKEN = os.getenv("TEAM_TOKEN", "acee50b025067ece530801f7901433430fae46c00beae83921306b8503bfb39a")
 
-# Pydantic models for request/response
+# Pydantic models
 class DocumentQueryRequest(BaseModel):
     documents: str  # URL to the document
     questions: List[str]
@@ -40,28 +43,36 @@ class DocumentQueryRequest(BaseModel):
 class DocumentQueryResponse(BaseModel):
     answers: List[str]
 
+# Authentication dependency
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify the Bearer token"""
     if credentials.credentials != TEAM_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid token")
     return credentials.credentials
 
 @app.get("/")
 def home():
-    """
-    Root endpoint: shows a welcome message.
-    """
-    return {"message": "Welcome to Intelligent Document Query API! Visit /docs to try the API."}
+    """Home page with basic information."""
+    return HTMLResponse("""
+    <html>
+        <head><title>Intelligent Document Query API</title></head>
+        <body>
+            <h1>🤖 Intelligent Document Query API</h1>
+            <p>Welcome to the AI-powered document querying system!</p>
+            <p><strong>Status:</strong> ✅ Running</p>
+            <p><strong>Version:</strong> 1.0.0</p>
+            <p><strong>API Documentation:</strong> <a href="/docs">/docs</a></p>
+            <p><strong>Health Check:</strong> <a href="/api/v1/health">/api/v1/health</a></p>
+        </body>
+    </html>
+    """)
 
 @app.get("/api/v1/health")
 def health_check():
-    """
-    Health check endpoint for the API.
-    """
-    # Check if required environment variables are set
+    """Health check endpoint."""
+    # Check for critical environment variables
     required_vars = [
         "AZURE_OPENAI_CHAT_API_KEY",
-        "AZURE_OPENAI_CHAT_ENDPOINT",
+        "AZURE_OPENAI_CHAT_ENDPOINT", 
         "AZURE_OPENAI_EMBEDDING_API_KEY",
         "AZURE_OPENAI_EMBEDDING_ENDPOINT"
     ]
@@ -72,10 +83,25 @@ def health_check():
         return {
             "status": "unhealthy",
             "message": f"Missing environment variables: {', '.join(missing_vars)}",
-            "error": "Configuration incomplete"
+            "timestamp": time.time()
         }
     
-    return {"status": "healthy", "message": "API is running successfully"}
+    return {
+        "status": "healthy",
+        "message": "All systems operational",
+        "timestamp": time.time(),
+        "version": "1.0.0"
+    }
+
+@app.get("/api/v1/test")
+def test_deployment():
+    """Test endpoint to verify current deployment."""
+    return {
+        "message": "Current deployment test",
+        "timestamp": time.time(),
+        "deployment_id": "latest",
+        "environment": os.getenv("ENVIRONMENT", "production")
+    }
 
 @app.post("/api/v1/hackrx/run", response_model=DocumentQueryResponse)
 async def run_document_queries(
@@ -83,30 +109,26 @@ async def run_document_queries(
     token: str = Depends(verify_token)
 ):
     """
-    Main endpoint to process document queries according to hackathon specifications.
-    
-    This endpoint:
-    1. Downloads document from the provided URL
-    2. Processes each question using the intelligent query system
-    3. Returns structured answers in the required format
+    Main endpoint to query documents with questions.
     """
     start_time = time.time()
     performance_metrics = {}
     
     try:
-        # Download document from URL
-        download_start = time.time()
         print(f"📥 Downloading document from: {request.documents}")
+        
+        # Download document with timeout
+        download_start = time.time()
         response = requests.get(request.documents, timeout=30)
         response.raise_for_status()
+        document_content = response.content
         download_time = round(time.time() - download_start, 2)
         performance_metrics["download_time"] = download_time
         print(f"⏱️ Download completed in {download_time}s")
         
-        # Save the downloaded document
+        # Save document
         save_start = time.time()
-        document_content = response.content
-        filename = "policy_document.pdf"
+        filename = f"document_{int(time.time())}.pdf"
         saved_path = await file_manager.save_uploaded_file(document_content, filename)
         save_time = round(time.time() - save_start, 2)
         performance_metrics["save_time"] = save_time
@@ -207,31 +229,20 @@ async def query_document(file: UploadFile = File(...), query: str = ""):
         except RuntimeError as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-        evaluation = evaluate_response(query, answer)
-
-        elapsed = round(time.time() - start_time, 2)
-
-        return ResponseFormatter.format_success_response({
-            "query": query,
-            "answer": answer,
-            "evaluation": evaluation,
-            "execution_time_seconds": elapsed
-        })
-
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
-    finally:
         await file_manager.cleanup_file(saved_path)
 
-# Only auto-open browser in development
-if __name__ == "__main__":
-    # Check if running in development mode
-    if os.getenv("ENVIRONMENT", "development") == "development":
-        # Open browser after 1.5 sec delay
-        threading.Timer(1.5, lambda: webbrowser.open_new("http://127.0.0.1:8000/docs")).start()
+        return {
+            "answer": answer,
+            "processing_time": round(time.time() - start_time, 2)
+        }
 
-    import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    except Exception as e:
+        await file_manager.cleanup_file(saved_path)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Development-only: Auto-open browser
+if os.getenv("ENVIRONMENT", "development") == "development":
+    try:
+        webbrowser.open_new("http://localhost:8000/docs")
+    except:
+        pass

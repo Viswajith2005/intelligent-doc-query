@@ -6,8 +6,8 @@ python-multipart==0.0.9
 # Environment management
 python-dotenv==1.0.1
 
-# Azure OpenAI SDK
-openai==1.28.1
+# Azure OpenAI SDK - Using stable version without proxies issue
+openai==1.12.0
 
 # Google Gemini SDK (optional - not currently used)
 # google-generativeai==0.5.2
