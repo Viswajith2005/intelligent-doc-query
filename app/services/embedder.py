@@ -14,33 +14,17 @@ def embed_chunks(chunks):
     print(f"🔑 Embedding API Key (last 5): {api_key[-5:] if api_key else 'MISSING'}")
     print(f"🤖 Embedding Deployment: {deployment}")
     
-    # Create embedding client with minimal configuration
+    # Create embedding client with user's exact configuration
     try:
         embedding_client = AzureOpenAI(
             api_key=api_key,
-            api_version="2024-02-15-preview",
+            api_version="2024-02-01",
             azure_endpoint=endpoint
         )
+        print("✅ Embedding client initialized successfully")
     except Exception as e:
-        print(f"❌ First initialization failed: {e}")
-        # Try with different API version
-        try:
-            embedding_client = AzureOpenAI(
-                api_key=api_key,
-                api_version="2024-05-01",
-                azure_endpoint=endpoint
-            )
-        except Exception as e2:
-            print(f"❌ Second initialization failed: {e2}")
-            # Try with default API version
-            try:
-                embedding_client = AzureOpenAI(
-                    api_key=api_key,
-                    azure_endpoint=endpoint
-                )
-            except Exception as e3:
-                print(f"❌ Third initialization failed: {e3}")
-                raise RuntimeError(f"Failed to initialize embedding client after 3 attempts: {e}")
+        print(f"❌ Embedding client initialization failed: {e}")
+        raise RuntimeError(f"Failed to initialize embedding client: {e}")
     
     try:
         response = embedding_client.embeddings.create(

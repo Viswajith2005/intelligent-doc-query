@@ -16,42 +16,17 @@ def query_llm(prompt, context_chunks):
     print(f"🔑 API Key (last 5): {API_KEY[-5:] if API_KEY else 'MISSING'}")
     print(f"🤖 Deployment: {DEPLOYMENT}")
 
-    # Create Azure OpenAI Client with multiple fallback attempts
-    client = None
-    
-    # First attempt: with api_version
+    # Create Azure OpenAI Client with user's exact configuration
     try:
         client = AzureOpenAI(
             api_key=API_KEY,
-            api_version="2024-02-15-preview",
+            api_version="2024-12-01-preview",
             azure_endpoint=ENDPOINT
         )
-        print("✅ Client initialized with api_version")
+        print("✅ LLM client initialized successfully")
     except Exception as e:
-        print(f"❌ First initialization failed: {e}")
-        # Second attempt: with different api_version
-        try:
-            client = AzureOpenAI(
-                api_key=API_KEY,
-                api_version="2024-05-01",
-                azure_endpoint=ENDPOINT
-            )
-            print("✅ Client initialized with alternative api_version")
-        except Exception as e2:
-            print(f"❌ Second initialization failed: {e2}")
-            # Third attempt: without api_version
-            try:
-                client = AzureOpenAI(
-                    api_key=API_KEY,
-                    azure_endpoint=ENDPOINT
-                )
-                print("✅ Client initialized without api_version")
-            except Exception as e3:
-                print(f"❌ Third initialization failed: {e3}")
-                raise RuntimeError(f"Failed to initialize Azure OpenAI client after 3 attempts: {e}")
-
-    if not client:
-        raise RuntimeError("Failed to initialize Azure OpenAI client")
+        print(f"❌ LLM client initialization failed: {e}")
+        raise RuntimeError(f"Failed to initialize Azure OpenAI client: {e}")
 
     context = "\n\n".join(context_chunks)
     final_prompt = f"{prompt}\n\nContext:\n{context}"
