@@ -1,6 +1,6 @@
-# NUCLEAR FIX - Completely new file to force Render deployment
-# This file replaces the old llm_service.py completely
-# Deployment ID: NUCLEAR-FORCE-REFRESH-2024
+# COMPLETE NUCLEAR SOLUTION - New file to force Render deployment
+# This file completely replaces the old llm_service.py
+# Deployment ID: COMPLETE-NUCLEAR-SOLUTION-2024
 
 import os
 import requests
@@ -64,4 +64,4 @@ def query_llm(prompt, context_chunks):
         raise RuntimeError(f"Failed to parse LLM response: {e}")
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
-        raise RuntimeError(f"Failed to query LLM: {e}")
+        raise RuntimeError(f"Failed to query LLM: {e}") 

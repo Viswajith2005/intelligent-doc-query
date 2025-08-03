@@ -1,6 +1,6 @@
-# NUCLEAR FIX - Completely new file to force Render deployment
-# This file replaces the old embedder.py completely
-# Deployment ID: NUCLEAR-FORCE-REFRESH-2024
+# COMPLETE NUCLEAR SOLUTION - New file to force Render deployment
+# This file completely replaces the old embedder.py
+# Deployment ID: COMPLETE-NUCLEAR-SOLUTION-2024
 
 import os
 import requests
@@ -53,4 +53,4 @@ def embed_chunks(chunks):
         raise RuntimeError(f"Failed to parse embedding response: {e}")
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
-        raise RuntimeError(f"Failed to generate embeddings: {e}")
+        raise RuntimeError(f"Failed to generate embeddings: {e}") 

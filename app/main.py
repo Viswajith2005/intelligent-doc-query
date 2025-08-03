@@ -1,6 +1,6 @@
-# NUCLEAR FIX - Completely new main.py to force Render deployment
-# This file replaces the old main.py completely
-# Deployment ID: NUCLEAR-FORCE-REFRESH-2024
+# COMPLETE NUCLEAR SOLUTION - New main.py to force Render deployment
+# This file completely replaces the old main.py
+# Deployment ID: COMPLETE-NUCLEAR-SOLUTION-2024
 
 import time
 import threading
@@ -11,9 +11,9 @@ from fastapi.responses import HTMLResponse
 from app.utils.helpers import FileManager, ResponseFormatter
 from app.services.document_loader import load_document
 from app.services.chunker import chunk_document
-from app.services.embedder import embed_chunks
+from app.services.embedder_new import embed_chunks
 from app.services.vector_store import store_embeddings, search_similar_chunks
-from app.services.llm_service import query_llm
+from app.services.llm_service_new import query_llm
 from app.services.evaluator import evaluate_response, evaluate_accuracy
 import os
 import sys
@@ -101,9 +101,9 @@ def health_check():
 def test_deployment():
     """Test endpoint to verify current deployment."""
     return {
-        "message": "NUCLEAR FIX - Direct HTTP requests only",
+        "message": "COMPLETE NUCLEAR SOLUTION - Direct HTTP requests only",
         "timestamp": time.time(),
-        "deployment_id": "NUCLEAR-FORCE-REFRESH-2024",
+        "deployment_id": "COMPLETE-NUCLEAR-SOLUTION-2024",
         "environment": os.getenv("ENVIRONMENT", "production")
     }
 
