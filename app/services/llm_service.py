@@ -20,12 +20,20 @@ def query_llm(prompt, context_chunks):
     try:
         client = AzureOpenAI(
             api_key=API_KEY,
-            api_version="2024-02-15-preview",
             azure_endpoint=ENDPOINT
         )
     except Exception as e:
         print(f"❌ Client initialization error: {e}")
-        raise RuntimeError(f"Failed to initialize Azure OpenAI client: {e}")
+        # Try alternative initialization
+        try:
+            client = AzureOpenAI(
+                api_key=API_KEY,
+                api_version="2024-02-15-preview",
+                azure_endpoint=ENDPOINT
+            )
+        except Exception as e2:
+            print(f"❌ Alternative initialization failed: {e2}")
+            raise RuntimeError(f"Failed to initialize Azure OpenAI client: {e}")
 
     context = "\n\n".join(context_chunks)
     final_prompt = f"{prompt}\n\nContext:\n{context}"
